@@ -20,17 +20,23 @@ default_codecs = {
     "wmv": "wmv2"
 }
 
-def convert_video(input_file_path, output_file_path, codec):
+# Define bitrates for quality settings
+bitrates = {
+    "High": "5000k",
+    "Medium": "2500k",
+    "Low": "1000k"
+}
+
+def convert_video(input_file_path, output_file_path, codec, bitrate):
     try:
         # Load the video file
         video = mp.VideoFileClip(input_file_path)
         
-        # Write the video to the desired format
+        # Write the video to the desired format with the specified quality
         if codec == "None":
-            # Use the default codec for the selected format
             codec = default_codecs[output_file_path.split('.')[-1]]
         
-        video.write_videofile(output_file_path, codec=codec, audio_codec='aac')
+        video.write_videofile(output_file_path, codec=codec, audio_codec='aac', bitrate=bitrate)
         
         st.success(f"Conversion complete! The file has been saved to {output_file_path}")
     except Exception as e:
@@ -50,9 +56,13 @@ if uploaded_file is not None:
     # Display codec options based on selected format
     codec = st.selectbox("Select the codec for the output format", codecs[output_format])
     
+    # Display quality options
+    quality = st.selectbox("Select the quality level", ["High", "Medium", "Low"])
+    bitrate = bitrates[quality]
+    
     output_video_path = f"output_video.{output_format}"
     
     if st.button("Convert"):
-        convert_video(input_video_path, output_video_path, codec)
+        convert_video(input_video_path, output_video_path, codec, bitrate)
         with open(output_video_path, "rb") as f:
             st.download_button("Download Converted Video", f, file_name=output_video_path)
