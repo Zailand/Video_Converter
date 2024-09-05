@@ -1,6 +1,13 @@
+import streamlit as st
+from streamlit.runtime.runtime import get_instance as get_runtime_instance
+
+# Increase the file upload size limit to 500 MB
+runtime = get_runtime_instance()
+runtime._set_server_option("server.maxUploadSize", 500)
+
+# The rest of your code...
 import moviepy.editor as mp
 import os
-import streamlit as st
 
 # Define available codecs for each format
 codecs = {
