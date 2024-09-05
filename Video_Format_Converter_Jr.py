@@ -4,11 +4,11 @@ import streamlit as st
 
 # Define available codecs for each format
 codecs = {
-    "mp4": ["libx264", "libx265", "mpeg4"],
-    "avi": ["mpeg4", "libxvid"],
-    "mkv": ["libx264", "libx265", "mpeg4"],
-    "flv": ["libx264"],
-    "wmv": ["wmv2", "vc1"]
+    "mp4": ["libx264", "libx265", "mpeg4", "None"],
+    "avi": ["mpeg4", "libxvid", "None"],
+    "mkv": ["libx264", "libx265", "mpeg4", "None"],
+    "flv": ["libx264", "None"],
+    "wmv": ["wmv2", "vc1", "None"]
 }
 
 def convert_video(input_file_path, output_file_path, codec):
@@ -17,7 +17,10 @@ def convert_video(input_file_path, output_file_path, codec):
         video = mp.VideoFileClip(input_file_path)
         
         # Write the video to the desired format
-        video.write_videofile(output_file_path, codec=codec, audio_codec='aac')
+        if codec == "None":
+            video.write_videofile(output_file_path, audio_codec='aac')
+        else:
+            video.write_videofile(output_file_path, codec=codec, audio_codec='aac')
         
         st.success(f"Conversion complete! The file has been saved to {output_file_path}")
     except Exception as e:
