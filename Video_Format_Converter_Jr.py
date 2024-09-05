@@ -11,6 +11,15 @@ codecs = {
     "wmv": ["wmv2", "vc1", "None"]
 }
 
+# Define default codecs for each format
+default_codecs = {
+    "mp4": "libx264",
+    "avi": "mpeg4",
+    "mkv": "libx264",
+    "flv": "libx264",
+    "wmv": "wmv2"
+}
+
 def convert_video(input_file_path, output_file_path, codec):
     try:
         # Load the video file
@@ -18,9 +27,10 @@ def convert_video(input_file_path, output_file_path, codec):
         
         # Write the video to the desired format
         if codec == "None":
-            video.write_videofile(output_file_path, audio_codec='aac')
-        else:
-            video.write_videofile(output_file_path, codec=codec, audio_codec='aac')
+            # Use the default codec for the selected format
+            codec = default_codecs[output_file_path.split('.')[-1]]
+        
+        video.write_videofile(output_file_path, codec=codec, audio_codec='aac')
         
         st.success(f"Conversion complete! The file has been saved to {output_file_path}")
     except Exception as e:
