@@ -3,6 +3,32 @@ import subprocess
 import json
 import os
 import streamlit as st
+import requests
+import tarfile
+
+def download_ffmpeg():
+    url = "https://johnvansickle.com/ffmpeg/releases/ffmpeg-release-i686-static.tar.xz"
+    ffmpeg_dir = "bin"
+    ffmpeg_tar_path = os.path.join(ffmpeg_dir, "ffmpeg.tar.xz")
+
+    if not os.path.exists(ffmpeg_dir):
+        os.makedirs(ffmpeg_dir)
+
+    # Download ffmpeg tar file
+    if not os.path.exists(ffmpeg_tar_path):
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(ffmpeg_tar_path, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+    # Extract ffmpeg binary
+    with tarfile.open(ffmpeg_tar_path) as tar:
+        tar.extractall(path=ffmpeg_dir)
+        extracted_dir = tar.getnames()[0].split('/')[0]
+        ffmpeg_path = os.path.join(ffmpeg_dir, extracted_dir, "ffmpeg")
+
+    return ffmpeg_path
 
 def get_codec_info(file_path):
     """Get codec information of the video using ffprobe."""
@@ -19,6 +45,10 @@ def get_codec_info(file_path):
 
 def convert_video(input_file_path, output_file_path):
     try:
+        # Download ffmpeg binary if not present
+        ffmpeg_path = download_ffmpeg()
+        os.environ["PATH"] += os.pathsep + os.path.dirname(ffmpeg_path)
+
         # Check if the output file already exists
         if os.path.exists(output_file_path):
             overwrite = st.radio(f"File '{output_file_path}' already exists. Overwrite?", ('Yes', 'No'))
