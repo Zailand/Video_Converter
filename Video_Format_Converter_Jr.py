@@ -1,7 +1,6 @@
 import moviepy.editor as mp
 import os
 import streamlit as st
-import numpy as np
 
 # Define available codecs for each format
 codecs = {
@@ -28,39 +27,10 @@ bitrates = {
     "Low": "1000k"
 }
 
-def detect_black_bars(video):
-    # Get a frame from the middle of the video
-    frame = video.get_frame(video.duration / 2)
-    # Convert the frame to grayscale
-    gray_frame = np.mean(frame, axis=2)
-    # Detect black bars by finding rows and columns with low variance
-    row_variance = np.var(gray_frame, axis=1)
-    col_variance = np.var(gray_frame, axis=0)
-    # Threshold for detecting black bars
-    threshold = 10
-    # Find the indices of rows and columns without black bars
-    rows = np.where(row_variance > threshold)[0]
-    cols = np.where(col_variance > threshold)[0]
-    # Return the bounding box of the non-black-bar area
-    return cols[0], cols[-1], rows[0], rows[-1]
-
-def convert_video(input_file_path, output_file_path, codec, bitrate, orientation):
+def convert_video(input_file_path, output_file_path, codec, bitrate):
     try:
         # Load the video file
         video = mp.VideoFileClip(input_file_path)
-        
-        # Detect and crop black bars
-        left, right, top, bottom = detect_black_bars(video)
-        video = video.crop(x1=left, x2=right, y1=top, y2=bottom)
-        
-        # Get the cropped dimensions
-        width, height = video.size
-        
-        # Adjust dimensions based on the chosen orientation
-        if orientation == "Portrait" and width > height:
-            video = video.resize(height=width)
-        elif orientation == "Landscape" and height > width:
-            video = video.resize(width=height)
         
         # Write the video to the desired format with the specified quality
         if codec == "None":
@@ -81,15 +51,6 @@ if uploaded_file is not None:
     with open(input_video_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
     
-    # Load the video file to get its properties
-    video = mp.VideoFileClip(input_video_path)
-    width, height = video.size
-    original_orientation = "Landscape" if width > height else "Portrait"
-    
-    # Display original video properties
-    st.write(f"**Original Resolution:** {width} x {height}")
-    st.write(f"**Original Orientation:** {original_orientation}")
-    
     output_format = st.selectbox("Select the desired output format", ["avi", "mp4", "mkv", "flv", "wmv"])
     
     # Display codec options based on selected format
@@ -99,26 +60,9 @@ if uploaded_file is not None:
     quality = st.selectbox("Select the quality level", ["High", "Medium", "Low"])
     bitrate = bitrates[quality]
     
-    # Display orientation options
-    orientation = st.selectbox("Select the desired orientation", ["Original", "Landscape", "Portrait"])
-    
-    # Calculate expected output dimensions and orientation
-    if orientation == "Portrait" and width > height:
-        output_width, output_height = height, width
-    elif orientation == "Landscape" and height > width:
-        output_width, output_height = height, width
-    else:
-        output_width, output_height = width, height
-    
-    output_orientation = "Landscape" if output_width > output_height else "Portrait"
-    
-    # Display expected output video properties
-    st.write(f"**Expected Output Resolution:** {output_width} x {output_height}")
-    st.write(f"**Expected Output Orientation:** {output_orientation}")
-    
     output_video_path = f"output_video.{output_format}"
     
     if st.button("Convert"):
-        convert_video(input_video_path, output_video_path, codec, bitrate, orientation)
+        convert_video(input_video_path, output_video_path, codec, bitrate)
         with open(output_video_path, "rb") as f:
             st.download_button("Download Converted Video", f, file_name=output_video_path)
