@@ -1,6 +1,7 @@
 import moviepy.editor as mp
 import os
 import streamlit as st
+import numpy as np
 
 # Define available codecs for each format
 codecs = {
@@ -27,10 +28,30 @@ bitrates = {
     "Low": "1000k"
 }
 
+def detect_black_bars(video):
+    # Get a frame from the middle of the video
+    frame = video.get_frame(video.duration / 2)
+    # Convert the frame to grayscale
+    gray_frame = np.mean(frame, axis=2)
+    # Detect black bars by finding rows and columns with low variance
+    row_variance = np.var(gray_frame, axis=1)
+    col_variance = np.var(gray_frame, axis=0)
+    # Threshold for detecting black bars
+    threshold = 10
+    # Find the indices of rows and columns without black bars
+    rows = np.where(row_variance > threshold)[0]
+    cols = np.where(col_variance > threshold)[0]
+    # Return the bounding box of the non-black-bar area
+    return cols[0], cols[-1], rows[0], rows[-1]
+
 def convert_video(input_file_path, output_file_path, codec, bitrate):
     try:
         # Load the video file
         video = mp.VideoFileClip(input_file_path)
+        
+        # Detect and crop black bars
+        left, right, top, bottom = detect_black_bars(video)
+        video = video.crop(x1=left, x2=right, y1=top, y2=bottom)
         
         # Write the video to the desired format with the specified quality
         if codec == "None":
