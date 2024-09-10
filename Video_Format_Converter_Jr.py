@@ -2,6 +2,7 @@ import moviepy.editor as mp
 import os
 import streamlit as st
 import numpy as np
+from PIL import Image
 
 # Define available codecs for each format
 codecs = {
@@ -71,6 +72,20 @@ if uploaded_file is not None:
     input_video_path = f"temp_input.{uploaded_file.name.split('.')[-1]}"
     with open(input_video_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
+    
+    # Load the video file to get its properties
+    video = mp.VideoFileClip(input_video_path)
+    width, height = video.size
+    original_orientation = "Landscape" if width > height else "Portrait"
+    
+    # Display original video properties
+    st.write(f"**Original Resolution:** {width} x {height}")
+    st.write(f"**Original Orientation:** {original_orientation}")
+    
+    # Extract and display the first frame as a preview
+    first_frame = video.get_frame(0)
+    first_frame_image = Image.fromarray(first_frame)
+    st.image(first_frame_image, caption="First Frame Preview", use_column_width=True)
     
     output_format = st.selectbox("Select the desired output format", ["avi", "mp4", "mkv", "flv", "wmv"])
     
