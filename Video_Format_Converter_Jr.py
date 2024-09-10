@@ -35,9 +35,6 @@ def convert_video(input_file_path, output_file_path, codec, bitrate):
         # Get the original dimensions
         width, height = video.size
         
-        # Resize the video to maintain the original dimensions
-        video = video.resize(newsize=(width, height))
-        
         # Write the video to the desired format with the specified quality
         if codec == "None":
             codec = default_codecs[output_file_path.split('.')[-1]]
