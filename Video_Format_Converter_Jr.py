@@ -27,10 +27,19 @@ bitrates = {
     "Low": "1000k"
 }
 
-def convert_video(input_file_path, output_file_path, codec, bitrate):
+def convert_video(input_file_path, output_file_path, codec, bitrate, orientation):
     try:
         # Load the video file
         video = mp.VideoFileClip(input_file_path)
+        
+        # Get the original dimensions
+        width, height = video.size
+        
+        # Adjust dimensions based on the chosen orientation
+        if orientation == "Portrait" and width > height:
+            video = video.resize(height=width)
+        elif orientation == "Landscape" and height > width:
+            video = video.resize(width=height)
         
         # Write the video to the desired format with the specified quality
         if codec == "None":
@@ -54,11 +63,11 @@ if uploaded_file is not None:
     # Load the video file to get its properties
     video = mp.VideoFileClip(input_video_path)
     width, height = video.size
-    orientation = "Landscape" if width > height else "Portrait"
+    original_orientation = "Landscape" if width > height else "Portrait"
     
-    # Display video properties
-    st.write(f"**Resolution:** {width} x {height}")
-    st.write(f"**Orientation:** {orientation}")
+    # Display original video properties
+    st.write(f"**Original Resolution:** {width} x {height}")
+    st.write(f"**Original Orientation:** {original_orientation}")
     
     output_format = st.selectbox("Select the desired output format", ["avi", "mp4", "mkv", "flv", "wmv"])
     
@@ -69,9 +78,26 @@ if uploaded_file is not None:
     quality = st.selectbox("Select the quality level", ["High", "Medium", "Low"])
     bitrate = bitrates[quality]
     
+    # Display orientation options
+    orientation = st.selectbox("Select the desired orientation", ["Original", "Landscape", "Portrait"])
+    
+    # Calculate expected output dimensions and orientation
+    if orientation == "Portrait" and width > height:
+        output_width, output_height = height, width
+    elif orientation == "Landscape" and height > width:
+        output_width, output_height = height, width
+    else:
+        output_width, output_height = width, height
+    
+    output_orientation = "Landscape" if output_width > output_height else "Portrait"
+    
+    # Display expected output video properties
+    st.write(f"**Expected Output Resolution:** {output_width} x {output_height}")
+    st.write(f"**Expected Output Orientation:** {output_orientation}")
+    
     output_video_path = f"output_video.{output_format}"
     
     if st.button("Convert"):
-        convert_video(input_video_path, output_video_path, codec, bitrate)
+        convert_video(input_video_path, output_video_path, codec, bitrate, orientation)
         with open(output_video_path, "rb") as f:
             st.download_button("Download Converted Video", f, file_name=output_video_path)
