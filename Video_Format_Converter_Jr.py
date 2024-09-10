@@ -45,10 +45,10 @@ def detect_black_bars(video):
     # Check if black bars are detected
     if rows[0] > 0 or rows[-1] < gray_frame.shape[0] - 1 or cols[0] > 0 or cols[-1] < gray_frame.shape[1] - 1:
         st.write("Black bars detected.")
+        return True
     else:
         st.write("No black bars detected.")
-    # Return the bounding box of the non-black-bar area
-    return cols[0], cols[-1], rows[0], rows[-1]
+        return False
 
 def convert_video(input_file_path, output_file_path, codec, bitrate):
     try:
@@ -84,7 +84,7 @@ if uploaded_file is not None:
     st.write(f"**Original Orientation:** {original_orientation}")
     
     # Detect black bars and print confirmation
-    detect_black_bars(video)
+    black_bars_detected = detect_black_bars(video)
     
     output_format = st.selectbox("Select the desired output format", ["avi", "mp4", "mkv", "flv", "wmv"])
     
