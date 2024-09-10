@@ -32,14 +32,11 @@ def convert_video(input_file_path, output_file_path, codec, bitrate):
         # Load the video file
         video = mp.VideoFileClip(input_file_path)
         
-        # Get the original dimensions
-        width, height = video.size
-        
         # Write the video to the desired format with the specified quality
         if codec == "None":
             codec = default_codecs[output_file_path.split('.')[-1]]
         
-        video.write_videofile(output_file_path, codec=codec, audio_codec='aac', bitrate=bitrate, width=width, height=height)
+        video.write_videofile(output_file_path, codec=codec, audio_codec='aac', bitrate=bitrate)
         
         st.success(f"Conversion complete! The file has been saved to {output_file_path}")
     except Exception as e:
