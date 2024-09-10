@@ -29,6 +29,27 @@ bitrates = {
     "Low": "1000k"
 }
 
+def detect_black_bars(video):
+    # Get a frame from the middle of the video
+    frame = video.get_frame(video.duration / 2)
+    # Convert the frame to grayscale
+    gray_frame = np.mean(frame, axis=2)
+    # Detect black bars by finding rows and columns with low variance
+    row_variance = np.var(gray_frame, axis=1)
+    col_variance = np.var(gray_frame, axis=0)
+    # Threshold for detecting black bars
+    threshold = 10
+    # Find the indices of rows and columns without black bars
+    rows = np.where(row_variance > threshold)[0]
+    cols = np.where(col_variance > threshold)[0]
+    # Check if black bars are detected
+    if rows[0] > 0 or rows[-1] < gray_frame.shape[0] - 1 or cols[0] > 0 or cols[-1] < gray_frame.shape[1] - 1:
+        st.write("Black bars detected.")
+    else:
+        st.write("No black bars detected.")
+    # Return the bounding box of the non-black-bar area
+    return cols[0], cols[-1], rows[0], rows[-1]
+
 def convert_video(input_file_path, output_file_path, codec, bitrate):
     try:
         # Load the video file
@@ -62,10 +83,8 @@ if uploaded_file is not None:
     st.write(f"**Original Resolution:** {width} x {height}")
     st.write(f"**Original Orientation:** {original_orientation}")
     
-    # Extract and display the first frame as a preview
-    first_frame = video.get_frame(0)
-    first_frame_image = Image.fromarray(first_frame)
-    st.image(first_frame_image, caption="First Frame Preview", use_column_width=True)
+    # Detect black bars and print confirmation
+    detect_black_bars(video)
     
     output_format = st.selectbox("Select the desired output format", ["avi", "mp4", "mkv", "flv", "wmv"])
     
@@ -75,6 +94,11 @@ if uploaded_file is not None:
     # Display quality options
     quality = st.selectbox("Select the quality level", ["High", "Medium", "Low"])
     bitrate = bitrates[quality]
+    
+    # Extract and display the first frame as a preview
+    first_frame = video.get_frame(0)
+    first_frame_image = Image.fromarray(first_frame)
+    st.image(first_frame_image, caption="First Frame Preview", use_column_width=True)
     
     output_video_path = f"output_video.{output_format}"
     
