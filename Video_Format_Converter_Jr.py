@@ -27,13 +27,19 @@ bitrates = {
     "Low": "1000k"
 }
 
-def convert_video(input_file_path, output_file_path, codec, bitrate):
+def convert_video(input_file_path, output_file_path, codec, bitrate, orientation):
     try:
         # Load the video file
         video = mp.VideoFileClip(input_file_path)
         
         # Get the original dimensions
         width, height = video.size
+        
+        # Adjust dimensions based on the chosen orientation
+        if orientation == "Portrait" and width > height:
+            video = video.resize(height=width)
+        elif orientation == "Landscape" and height > width:
+            video = video.resize(width=height)
         
         # Write the video to the desired format with the specified quality
         if codec == "None":
@@ -63,9 +69,12 @@ if uploaded_file is not None:
     quality = st.selectbox("Select the quality level", ["High", "Medium", "Low"])
     bitrate = bitrates[quality]
     
+    # Display orientation options
+    orientation = st.selectbox("Select the desired orientation", ["Original", "Landscape", "Portrait"])
+    
     output_video_path = f"output_video.{output_format}"
     
     if st.button("Convert"):
-        convert_video(input_video_path, output_video_path, codec, bitrate)
+        convert_video(input_video_path, output_video_path, codec, bitrate, orientation)
         with open(output_video_path, "rb") as f:
             st.download_button("Download Converted Video", f, file_name=output_video_path)
