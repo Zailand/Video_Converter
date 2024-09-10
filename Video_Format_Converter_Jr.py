@@ -27,19 +27,10 @@ bitrates = {
     "Low": "1000k"
 }
 
-def convert_video(input_file_path, output_file_path, codec, bitrate, orientation):
+def convert_video(input_file_path, output_file_path, codec, bitrate):
     try:
         # Load the video file
         video = mp.VideoFileClip(input_file_path)
-        
-        # Get the original dimensions
-        width, height = video.size
-        
-        # Adjust dimensions based on the chosen orientation
-        if orientation == "Portrait" and width > height:
-            video = video.resize(height=width)
-        elif orientation == "Landscape" and height > width:
-            video = video.resize(width=height)
         
         # Write the video to the desired format with the specified quality
         if codec == "None":
@@ -60,6 +51,15 @@ if uploaded_file is not None:
     with open(input_video_path, "wb") as f:
         f.write(uploaded_file.getbuffer())
     
+    # Load the video file to get its properties
+    video = mp.VideoFileClip(input_video_path)
+    width, height = video.size
+    orientation = "Landscape" if width > height else "Portrait"
+    
+    # Display video properties
+    st.write(f"**Resolution:** {width} x {height}")
+    st.write(f"**Orientation:** {orientation}")
+    
     output_format = st.selectbox("Select the desired output format", ["avi", "mp4", "mkv", "flv", "wmv"])
     
     # Display codec options based on selected format
@@ -69,12 +69,9 @@ if uploaded_file is not None:
     quality = st.selectbox("Select the quality level", ["High", "Medium", "Low"])
     bitrate = bitrates[quality]
     
-    # Display orientation options
-    orientation = st.selectbox("Select the desired orientation", ["Original", "Landscape", "Portrait"])
-    
     output_video_path = f"output_video.{output_format}"
     
     if st.button("Convert"):
-        convert_video(input_video_path, output_video_path, codec, bitrate, orientation)
+        convert_video(input_video_path, output_video_path, codec, bitrate)
         with open(output_video_path, "rb") as f:
             st.download_button("Download Converted Video", f, file_name=output_video_path)
