@@ -57,7 +57,10 @@ def convert_video(input_file_path, output_file_path, codec, bitrate, add_black_b
         
         # Add black bars if detected
         if add_black_bars:
-            video = mp.vfx.margin(video, mar=margins, color=(0, 0, 0))
+            left, right, top, bottom = margins
+            new_width = video.w + left + right
+            new_height = video.h + top + bottom
+            video = video.margin(left=left, right=right, top=top, bottom=bottom, color=(0, 0, 0))
         
         # Write the video to the desired format with the specified quality
         if codec == "None":
