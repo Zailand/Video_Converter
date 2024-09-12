@@ -76,6 +76,9 @@ def convert_video(input_file_path, output_file_path, codec, bitrate, keep_black_
     except Exception as e:
         st.error(f"An error occurred while converting the file: {e}")
 
+# Streamlit UI
+st.title("Video Format Converter")
+
 uploaded_file = st.file_uploader("Upload a video file", type=["mp4", "mov", "avi", "mkv", "flv", "wmv"])
 if uploaded_file is not None:
     input_video_path = f"temp_input.{uploaded_file.name.split('.')[-1]}"
