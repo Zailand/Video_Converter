@@ -45,22 +45,19 @@ def detect_black_bars(video):
     # Check if black bars are detected
     if rows[0] > 0 or rows[-1] < gray_frame.shape[0] - 1 or cols[0] > 0 or cols[-1] < gray_frame.shape[1] - 1:
         st.write("Black bars detected.")
-        return True, (cols[0], gray_frame.shape[1] - cols[-1] - 1, rows[0], gray_frame.shape[0] - rows[-1] - 1)
+        return True
     else:
         st.write("No black bars detected.")
-        return False, (0, 0, 0, 0)
+        return False
 
-def convert_video(input_file_path, output_file_path, codec, bitrate, add_black_bars, margins):
+def convert_video(input_file_path, output_file_path, codec, bitrate, keep_black_bars):
     try:
         # Load the video file
         video = mp.VideoFileClip(input_file_path)
         
-        # Add black bars if detected
-        if add_black_bars:
-            left, right, top, bottom = margins
-            new_width = video.w + left + right
-            new_height = video.h + top + bottom
-            video = video.margin(left=left, right=right, top=top, bottom=bottom, color=(0, 0, 0))
+        # If black bars are detected and should be kept, do not resize or crop
+        if keep_black_bars:
+            video = video.set_duration(video.duration)  # Ensure the duration is set correctly
         
         # Write the video to the desired format with the specified quality
         if codec == "None":
@@ -91,7 +88,7 @@ if uploaded_file is not None:
     st.write(f"**Original Orientation:** {original_orientation}")
     
     # Detect black bars and print confirmation
-    black_bars_detected, margins = detect_black_bars(video)
+    black_bars_detected = detect_black_bars(video)
     
     output_format = st.selectbox("Select the desired output format", ["avi", "mp4", "mkv", "flv", "wmv"])
     
@@ -110,6 +107,6 @@ if uploaded_file is not None:
     output_video_path = f"output_video.{output_format}"
     
     if st.button("Convert"):
-        convert_video(input_video_path, output_video_path, codec, bitrate, black_bars_detected, margins)
+        convert_video(input_video_path, output_video_path, codec, bitrate, black_bars_detected)
         with open(output_video_path, "rb") as f:
             st.download_button("Download Converted Video", f, file_name=output_video_path)
